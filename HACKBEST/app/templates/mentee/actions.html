@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>My actions</h2>
+<table class="table table-striped table-bordered">
+    <thead><tr><th>Action</th><th>Progress</th><th>Update</th></tr></thead>
+    <tbody>
+        {% for assignment in assignments %}
+        <tr>
+            <td>
+                <strong>{{ assignment.action.title }}</strong>
+                <p class="mb-1">{{ assignment.action.description }}</p>
+                <small>Due {{ assignment.action.deadline }}</small>
+                {% if assignment.notes %}<p class="mb-0 mt-2">{{ assignment.notes }}</p>{% endif %}
+            </td>
+            <td>
+                <span class="status-pill">{{ assignment.status }}</span>
+                <div class="progress mt-2" role="progressbar" aria-label="Task progress" aria-valuenow="{{ assignment.progress }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ assignment.progress }}%"></div>
+                </div>
+                <small>{{ assignment.progress }}%</small>
+            </td>
+            <td>
+                <form method="post" action="{{ url_for('mentee.update_action', assignment_id=assignment.id) }}" class="d-grid gap-2">
+                    {{ progress_form.hidden_tag() }}
+                    <label>Status
+                        <select class="form-select" name="status">
+                            {% for status in ['Not Started', 'In Progress', 'Completed'] %}
+                            <option value="{{ status }}" {% if assignment.status == status %}selected{% endif %}>{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Progress (0-100) {{ progress_form.progress(class_='form-control', min='0', max='100', value=assignment.progress) }}</label>
+                    <label>Notes <textarea class="form-control" name="notes" rows="2" maxlength="2000">{{ assignment.notes or '' }}</textarea></label>
+                    {{ progress_form.submit(class_='btn btn-primary btn-sm') }}
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4"><div class="table-empty-state"><span><i class="bi bi-bullseye" aria-hidden="true"></i></span><strong>Your task list is clear</strong><p>When your mentor assigns a next step, it will show up here.</p><a class="button button-outline" href="{{ url_for('mentee.meetings') }}">View sessions</a></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

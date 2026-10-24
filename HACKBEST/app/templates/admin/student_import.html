@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <p class="eyebrow">ADMIN WORKSPACE</p>
+        <h2>Import students</h2>
+        <p class="muted-copy">Create up to 500 mentee accounts from one Excel workbook.</p>
+    </div>
+</div>
+
+<section class="surface-card" aria-labelledby="student-import-heading">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">BULK ACCOUNT SETUP</p>
+            <h3 id="student-import-heading">Upload an .xlsx workbook</h3>
+            <p class="muted-copy">Use the template columns: <strong>username</strong>, <strong>full_name</strong>, <strong>email</strong>, and optional <strong>mentor_username</strong>.</p>
+        </div>
+        <span class="stat-icon stat-icon-blue"><i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i></span>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn btn-outline-primary" href="{{ url_for('admin.student_import_template') }}">
+            <i class="bi bi-download" aria-hidden="true"></i> Download Excel template
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('admin.users') }}">Back to user management</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+            <label class="form-label" for="student-workbook">Student workbook</label>
+            <input class="form-control" type="file" id="student-workbook" name="file" accept=".xlsx" required>
+            <small class="muted-copy">Maximum 5 MB and 500 student rows. Each username and email must be unique.</small>
+        </div>
+        <div class="alert alert-info mb-0" role="note">
+            ProGuide generates a unique temporary password for each student and requires a password change at first login.
+            After a successful import, download the credentials CSV once, share it securely, and delete your copy.
+        </div>
+        <div>
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-upload" aria-hidden="true"></i> Validate and import students
+            </button>
+        </div>
+    </form>
+
+    {% if import_errors %}
+    <div class="alert alert-danger mt-4" role="alert">
+        <strong>No accounts were imported.</strong>
+        <ul class="mb-0 mt-2">
+            {% for error in import_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

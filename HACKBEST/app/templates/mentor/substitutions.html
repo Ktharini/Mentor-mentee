@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <p class="eyebrow">MENTOR WORKSPACE</p>
+        <h2>Substitution coverage</h2>
+        <p class="muted-copy">Each substitution automatically covers every active mentee assigned to you.</p>
+    </div>
+</div>
+
+<section class="surface-card mb-4" aria-labelledby="create-substitution-heading">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">PLAN COVERAGE</p>
+            <h3 id="create-substitution-heading">Create a substitution</h3>
+            <p class="muted-copy">One substitution request applies to all your active assigned mentees. If any already has overlapping active coverage, none will be created.</p>
+        </div>
+        <span class="stat-icon stat-icon-blue"><i class="bi bi-arrow-left-right" aria-hidden="true"></i></span>
+    </div>
+    <form method="post" class="row g-3 mentor-substitution-form">
+        {{ form.hidden_tag() }}
+        <div class="col-12">
+            <p class="muted-copy mb-0" role="status">
+                This request will cover all {{ assigned_mentees|length }} active mentee{{ '' if assigned_mentees|length == 1 else 's' }} assigned to you.
+            </p>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="substitute_mentor_id">{{ form.substitute_mentor_id.label.text }}</label>
+            {{ form.substitute_mentor_id(class_='form-select', required=true, disabled=not substitute_mentors) }}
+            {% for error in form.substitute_mentor_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-6">
+            {{ form.reason.label(class_='form-label') }}
+            {{ form.reason(class_='form-control', required=true, maxlength='255') }}
+            {% for error in form.reason.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-3">
+            {{ form.start_date.label(class_='form-label') }}
+            {{ form.start_date(class_='form-control', required=true, min=today) }}
+            {% for error in form.start_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-3">
+            {{ form.end_date.label(class_='form-label') }}
+            {{ form.end_date(class_='form-control', required=true, min=today) }}
+            {% for error in form.end_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-12">
+            {% if assigned_mentees and substitute_mentors %}
+                {{ form.submit(class_='btn btn-primary') }}
+            {% else %}
+                <p class="muted-copy mb-0" role="status">An active assigned mentee and another active mentor are required to create a substitution.</p>
+            {% endif %}
+        </div>
+    </form>
+</section>
+
+<section class="surface-card" aria-labelledby="existing-substitutions-heading">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">YOUR ASSIGNMENTS</p>
+            <h3 id="existing-substitutions-heading">Existing substitutions</h3>
+        </div>
+        <span class="meeting-count">{{ substitutions|length }}</span>
+    </div>
+    {% for item in substitutions %}
+    <article class="border rounded-3 p-3 mb-3">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+            <div>
+                <strong>{{ item.mentee.full_name }}</strong>
+                <span class="status-pill {% if item.active %}status-approved{% else %}status-rejected{% endif %}">
+                    {{ 'Active' if item.active else 'Inactive' }}
+                </span>
+                <p class="muted-copy mb-0">Primary mentor: {{ item.mentor.full_name }} · Current substitute: {{ item.substitute.full_name }}</p>
+            </div>
+            <span class="muted-copy">{{ item.start_date }} to {{ item.end_date }}</span>
+        </div>
+        <form method="post" action="{{ url_for('mentor.update_substitution', substitution_id=item.id) }}" class="row g-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="mentee_id" value="{{ item.mentee_id }}">
+            <div class="col-md-4">
+                <label class="form-label" for="substitute-{{ item.id }}">Substitute mentor</label>
+                <select class="form-select" id="substitute-{{ item.id }}" name="substitute_mentor_id" required>
+                    {% for mentor in substitute_mentors %}
+                    <option value="{{ mentor.id }}" {% if mentor.id == item.substitute_mentor_id %}selected{% endif %}>{{ mentor.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="reason-{{ item.id }}">Reason</label>
+                <input class="form-control" id="reason-{{ item.id }}" name="reason" value="{{ item.reason }}" maxlength="255" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="start-{{ item.id }}">Start date</label>
+                <input class="form-control" id="start-{{ item.id }}" type="date" name="start_date" value="{{ item.start_date.isoformat() }}" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="end-{{ item.id }}">End date</label>
+                <input class="form-control" id="end-{{ item.id }}" type="date" name="end_date" value="{{ item.end_date.isoformat() }}" required>
+            </div>
+            <div class="col-md-6 d-flex align-items-center">
+                <label class="form-check-label">
+                    <input class="form-check-input me-2" type="checkbox" name="active" value="y" {% if item.active %}checked{% endif %}>
+                    Keep this substitution active
+                </label>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-primary" type="submit">Save changes</button>
+            </div>
+        </form>
+    </article>
+    {% else %}
+    <div class="table-empty-state">
+        <span><i class="bi bi-arrow-left-right" aria-hidden="true"></i></span>
+        <strong>No substitutions yet</strong>
+        <p>Create temporary coverage for one of your active mentees above.</p>
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}

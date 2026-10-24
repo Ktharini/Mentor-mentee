@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="welcome-row">
+    <div>
+        <p class="eyebrow">MENTOR WORKSPACE</p>
+        <h2>Welcome back, {{ current_user.full_name.split()[0] }}.</h2>
+        <p class="muted-copy">A quick view of the people and plans you’re supporting.</p>
+    </div>
+    <a class="button button-primary" href="{{ url_for('mentor.meetings') }}">
+        <i class="bi bi-calendar-plus" aria-hidden="true"></i> Schedule a session
+    </a>
+</section>
+
+<section class="stat-grid stat-grid-four" aria-label="Mentor statistics">
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-blue"><i class="bi bi-people" aria-hidden="true"></i></span>
+        <span class="stat-label">My mentees</span>
+        <strong class="stat-value" data-count="{{ mentees|length }}">{{ mentees|length }}</strong>
+        <span class="stat-note">In your community</span>
+    </article>
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-teal"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+        <span class="stat-label">Upcoming sessions</span>
+        <strong class="stat-value" data-count="{{ upcoming_meetings|length }}">{{ upcoming_meetings|length }}</strong>
+        <span class="stat-note">Scheduled or requested</span>
+    </article>
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-amber"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+        <span class="stat-label">Pending requests</span>
+        <strong class="stat-value" data-count="{{ pending_requests }}">{{ pending_requests }}</strong>
+        <span class="stat-note">Ready for your review</span>
+    </article>
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-violet"><i class="bi bi-star" aria-hidden="true"></i></span>
+        <span class="stat-label">Average rating</span>
+        <strong class="stat-value">{{ average_rating if average_rating is not none else '—' }}</strong>
+        <span class="stat-note">Ratings aren’t tracked yet</span>
+    </article>
+</section>
+
+<section class="dashboard-grid">
+    <article class="surface-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">ON YOUR CALENDAR</p><h3>Upcoming sessions</h3></div>
+            <a class="text-link" href="{{ url_for('mentor.meetings') }}">All sessions <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        {% if upcoming_meetings %}
+        <div class="session-list">
+            {% for meeting in upcoming_meetings %}
+            <article class="session-row">
+                <span class="date-tile"><b>{{ meeting.date.strftime('%d') }}</b><small>{{ meeting.date.strftime('%b') }}</small></span>
+                <div class="session-copy">
+                    <strong>{{ meeting.mentee.full_name }}</strong>
+                    <p>{{ meeting.time }} · {{ meeting.mode|title }} · {{ meeting.agenda }}</p>
+                </div>
+                <span class="status-pill status-{{ meeting.status|lower|replace(' ', '-') }}">{{ meeting.status }}</span>
+                <a class="icon-button icon-button-small" href="{{ url_for('mentor.meeting_detail', meeting_id=meeting.id) }}" aria-label="Open session with {{ meeting.mentee.full_name }}">
+                    <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state empty-state-compact">
+            <span class="empty-illustration"><i class="bi bi-calendar2-plus" aria-hidden="true"></i></span>
+            <h4>No upcoming sessions</h4>
+            <p>New mentee requests will appear here.</p>
+            <a class="button button-outline" href="{{ url_for('mentor.meetings') }}">Review meetings</a>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="surface-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">STAY IN THE LOOP</p><h3>Recent messages</h3></div>
+            <a class="text-link" href="{{ url_for('messaging.inbox') }}">View inbox <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        {% if recent_messages %}
+        <div class="message-list">
+            {% for message in recent_messages %}
+            <article class="message-row">
+                <span class="avatar avatar-small">{{ (message.sender.full_name if message.sender_id != current_user.id else message.recipient.full_name).split()|map('first')|join|upper|truncate(2, True, '') }}</span>
+                <div><strong>{{ message.sender.full_name if message.sender_id != current_user.id else 'You → ' ~ message.recipient.full_name }}</strong><p>{{ message.content|truncate(90) }}</p></div>
+                {% if message.emergency %}<span class="status-pill status-rejected">Emergency</span>{% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state empty-state-compact">
+            <span class="empty-illustration"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+            <h4>Your conversations start here</h4>
+            <p>Messages with your mentees will appear in this space.</p>
+            <a class="button button-outline" href="{{ url_for('messaging.inbox') }}">Message your mentees</a>
+        </div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="surface-card">
+    <div class="card-heading">
+        <div><p class="eyebrow">KEEP MOMENTUM</p><h3>Recent assignments</h3></div>
+        <a class="text-link" href="{{ url_for('mentor.actions') }}">Manage assignments <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    {% if actions %}
+    <div class="quick-list">
+        {% for action in actions %}
+        <article class="quick-list-row">
+            <span class="activity-icon"><i class="bi bi-check2-square" aria-hidden="true"></i></span>
+            <div><strong>{{ action.title }}</strong><p>Due {{ action.deadline.strftime('%b %d, %Y') }}</p></div>
+            <span class="soft-badge">{{ action.assignments|length }} assigned</span>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state empty-state-compact">
+        <span class="empty-illustration"><i class="bi bi-list-check" aria-hidden="true"></i></span>
+        <h4>No assignments yet</h4>
+        <p>Create a small next step to help a mentee make progress.</p>
+        <a class="button button-outline" href="{{ url_for('mentor.create_action') }}">Create an assignment</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

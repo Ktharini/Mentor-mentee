@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 700px;">
+    <div class="card-body">
+        <h3>Meeting request</h3>
+        <p><strong>Mentee:</strong> {{ meeting.mentee.full_name }}</p>
+        <p><strong>Date:</strong> {{ meeting.date }} at {{ meeting.time }}</p>
+        <p><strong>Mode:</strong> {{ meeting.mode }}</p>
+        <p><strong>Agenda:</strong> {{ meeting.agenda }}</p>
+        <form method="post" data-confirm-reject>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">{{ form.decision.label(class_='form-label') }} {{ form.decision(class_='form-select') }}</div>
+            <div class="mb-3">{{ form.reason.label(class_='form-label') }} {{ form.reason(class_='form-control') }}</div>
+            {{ form.submit(class_='btn btn-primary') }}
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <p class="eyebrow">MENTOR WORKSPACE</p>
+        <h2>Meeting requests</h2>
+        <p class="muted-copy">Review mentee requests or schedule a meeting with one of your mentees.</p>
+    </div>
+</div>
+
+<section class="surface-card mentor-meeting-create" aria-labelledby="create-meeting-heading">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">PLAN A SESSION</p>
+            <h3 id="create-meeting-heading">Create a meeting</h3>
+            <p class="muted-copy">Schedule for all active mentees or choose any number of specific mentees. Each person receives their own session and notification.</p>
+        </div>
+        <span class="stat-icon stat-icon-blue"><i class="bi bi-calendar2-plus" aria-hidden="true"></i></span>
+    </div>
+    <form method="post" class="mentor-meeting-form">
+        {{ form.hidden_tag() }}
+        <div class="meeting-form-grid">
+            <div class="meeting-audience-field">
+                {{ form.audience.label(class_='form-label') }}
+                {{ form.audience(class_='form-select', required=true, disabled=not assigned_mentees, **{'data-meeting-audience': ''}) }}
+                {% for error in form.audience.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <fieldset class="meeting-mentee-picker" data-meeting-mentee-picker hidden>
+                <legend>{{ form.mentee_ids.label.text }}</legend>
+                <p class="muted-copy">Select one or more active mentees for this meeting.</p>
+                <div class="meeting-mentee-options">
+                    {% for mentee in assigned_mentees %}
+                    <label class="meeting-mentee-option">
+                        <input type="checkbox" name="{{ form.mentee_ids.name }}" value="{{ mentee.id }}"
+                               {% if mentee.id in (form.mentee_ids.data or []) %}checked{% endif %}>
+                        <span class="avatar avatar-small" aria-hidden="true">{{ mentee.full_name[:1]|upper }}</span>
+                        <span>{{ mentee.full_name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% for error in form.mentee_ids.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+                <small class="field-error" data-meeting-selection-error hidden>Select at least one mentee.</small>
+                <p class="meeting-selection-count" data-meeting-selection-count aria-live="polite"></p>
+            </fieldset>
+            <div>
+                {{ form.date.label(class_='form-label') }}
+                {{ form.date(class_='form-control', required=true, min=min_meeting_date) }}
+                {% for error in form.date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <div>
+                {{ form.time.label(class_='form-label') }}
+                {{ form.time(class_='form-control', required=true, placeholder='e.g. 10:30 AM', autocomplete='off') }}
+                {% for error in form.time.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <div>
+                {{ form.duration.label(class_='form-label') }}
+                {{ form.duration(class_='form-control', required=true, min='15', max='240', step='15') }}
+                {% for error in form.duration.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <div>
+                {{ form.mode.label(class_='form-label') }}
+                {{ form.mode(class_='form-select', required=true) }}
+                {% for error in form.mode.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <div class="meeting-agenda-field">
+                {{ form.agenda.label(class_='form-label') }}
+                {{ form.agenda(class_='form-control', required=true, maxlength='500', placeholder='What would you like to cover?') }}
+                {% for error in form.agenda.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+        </div>
+        {% if assigned_mentees %}
+            {{ form.submit(class_='btn btn-primary', **{'aria-label': 'Create meeting for selected mentees', 'data-meeting-submit': ''}) }}
+        {% else %}
+            <p class="muted-copy" role="status">Assign an active mentee to your profile before scheduling a meeting.</p>
+            {{ form.submit(class_='btn btn-primary', disabled=true) }}
+        {% endif %}
+    </form>
+</section>
+
+<section class="surface-card meeting-requests-card" aria-labelledby="meeting-requests-heading">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">YOUR CALENDAR</p>
+            <h3 id="meeting-requests-heading">Requests &amp; scheduled meetings</h3>
+        </div>
+        <span class="meeting-count">{{ meetings|length }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead><tr><th>Mentee</th><th>Date &amp; time</th><th>Agenda</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for meeting in meetings %}
+                <tr>
+                    <td>{{ meeting.mentee.full_name }}</td>
+                    <td>{{ meeting.date }}<br><small>{{ meeting.time }} · {{ meeting.duration }} min</small></td>
+                    <td>{{ meeting.agenda }}</td>
+                    <td><span class="status-pill status-{{ meeting.status|lower }}">{{ meeting.status }}</span></td>
+                    <td><a href="{{ url_for('mentor.meeting_detail', meeting_id=meeting.id) }}" class="btn btn-sm btn-primary">Manage</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5"><div class="table-empty-state"><span><i class="bi bi-calendar3" aria-hidden="true"></i></span><strong>No meeting requests or sessions yet</strong><p>New requests from your mentees will appear here. You can also schedule one above.</p><a class="button button-outline" href="{{ url_for('mentor.mentees') }}">View my mentees</a></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

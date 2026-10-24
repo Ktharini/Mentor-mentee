@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="mentee-hero">
+    <div class="hero-copy">
+        <p class="eyebrow">YOUR LEARNING JOURNEY</p>
+        <h2>You’ve got this, {{ current_user.full_name.split()[0] }}.</h2>
+        <p>Every thoughtful step brings you closer to where you want to be.</p>
+        <a class="button button-primary" href="{{ url_for('mentee.create_meeting') }}">
+            <i class="bi bi-calendar-plus" aria-hidden="true"></i> Book a session
+        </a>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+        <span class="hero-orbit hero-orbit-one"></span><span class="hero-orbit hero-orbit-two"></span>
+        <i class="bi bi-stars"></i>
+    </div>
+</section>
+
+<section class="dashboard-grid mentee-grid">
+    <article class="surface-card mentor-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">IN YOUR CORNER</p><h3>My mentor</h3></div>
+            <span class="stat-icon stat-icon-blue"><i class="bi bi-person-heart" aria-hidden="true"></i></span>
+        </div>
+        {% if mentor %}
+        <div class="mentor-profile">
+            <span class="avatar avatar-mentor">{{ mentor.full_name.split()|map('first')|join|upper|truncate(2, True, '') }}</span>
+            <div><strong>{{ mentor.full_name }}</strong><p>Your primary mentor</p></div>
+        </div>
+        {% if substitute %}
+        <div class="callout callout-teal"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{{ substitute.substitute.full_name }} is supporting you until {{ substitute.end_date.strftime('%b %d') }}.</span></div>
+        {% endif %}
+        <a class="text-link" href="{{ url_for('messaging.inbox') }}">Message your mentor <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a class="text-link" href="{{ url_for('mentee.achievements') }}">Share an achievement <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        {% else %}
+        <div class="empty-state empty-state-compact">
+            <span class="empty-illustration"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
+            <h4>Your match is on its way</h4><p>A mentor will appear here once you’re matched.</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="surface-card next-session-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">LOOKING AHEAD</p><h3>Next session</h3></div>
+            <span class="stat-icon stat-icon-teal"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+        </div>
+        {% if next_meeting %}
+        <div class="next-session-date">
+            <span class="date-tile date-tile-large"><b>{{ next_meeting.date.strftime('%d') }}</b><small>{{ next_meeting.date.strftime('%b') }}</small></span>
+            <div><strong>{{ next_meeting.date.strftime('%A, %B %d') }}</strong><p>{{ next_meeting.time }} · {{ next_meeting.mode|title }}</p></div>
+        </div>
+        <p class="session-agenda">{{ next_meeting.agenda }}</p>
+        <span class="status-pill status-{{ next_meeting.status|lower|replace(' ', '-') }}">{{ next_meeting.status }}</span>
+        {% else %}
+        <div class="empty-state empty-state-compact">
+            <span class="empty-illustration"><i class="bi bi-calendar2-plus" aria-hidden="true"></i></span>
+            <h4>Make time for your next step</h4><p>Book a session to talk through your goals.</p>
+            <a class="button button-outline" href="{{ url_for('mentee.create_meeting') }}">Book a session</a>
+        </div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="dashboard-grid dashboard-grid-wide">
+    <article class="surface-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">YOUR LEARNING SUMMARY</p><h3>Student progress report</h3></div>
+            <a class="text-link" href="{{ url_for('mentee.actions') }}">All tasks <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        {% if assignments %}
+        <div class="goal-summary">
+            <div class="goal-summary-top"><span>Overall task progress</span><strong>{{ progress_percent }}%</strong></div>
+            <div class="progress-track" role="progressbar" aria-label="Overall task progress" aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+                <span style="width: {{ progress_percent }}%"></span>
+            </div>
+        </div>
+        <div class="progress-report-stats" aria-label="Task summary">
+            <div class="progress-report-stat"><strong>{{ action_count }}</strong><span>Total tasks</span></div>
+            <div class="progress-report-stat"><strong>{{ in_progress_actions }}</strong><span>In progress</span></div>
+            <div class="progress-report-stat"><strong>{{ completed_actions }}</strong><span>Completed</span></div>
+        </div>
+        <div class="quick-list">
+            {% for report in report_tasks %}
+            {% set assignment = report.assignment %}
+            <article class="quick-list-row">
+                <span class="activity-icon"><i class="bi bi-check2-square" aria-hidden="true"></i></span>
+                <div class="progress-report-task">
+                    <strong>{{ assignment.action.title }}</strong>
+                    <p>Due {{ assignment.action.deadline.strftime('%b %d, %Y') }}</p>
+                    <div class="progress-track" role="progressbar" aria-label="{{ assignment.action.title }} progress" aria-valuenow="{{ report.progress }}" aria-valuemin="0" aria-valuemax="100">
+                        <span style="width: {{ report.progress }}%"></span>
+                    </div>
+                    <small>{{ report.progress }}% complete</small>
+                    {% if assignment.notes %}<p class="progress-report-notes">{{ assignment.notes }}</p>{% endif %}
+                </div>
+                <span class="status-pill status-{{ assignment.status|lower|replace(' ', '-') }}">{{ assignment.status }}</span>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state empty-state-compact">
+            <span class="empty-illustration"><i class="bi bi-bullseye" aria-hidden="true"></i></span>
+            <h4>Your goals will take shape here</h4><p>Tasks and next steps from your mentor will show here.</p>
+            <a class="button button-outline" href="{{ url_for('mentee.meetings') }}">View my sessions</a>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="surface-card resource-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">A GOOD NEXT STEP</p><h3>Learning resources</h3></div>
+            <span class="stat-icon stat-icon-amber"><i class="bi bi-journal-bookmark" aria-hidden="true"></i></span>
+        </div>
+        <div class="resource-empty">
+            <span class="resource-spark"><i class="bi bi-lightbulb" aria-hidden="true"></i></span>
+            <h4>Curated resources are coming soon</h4>
+            <p>For now, message your mentor to get recommendations tailored to your goals.</p>
+            <a class="button button-outline" href="{{ url_for('messaging.inbox') }}">Ask your mentor</a>
+        </div>
+    </article>
+</section>
+{% endblock %}

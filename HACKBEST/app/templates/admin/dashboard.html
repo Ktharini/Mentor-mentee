@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="welcome-row">
+    <div>
+        <p class="eyebrow">PLATFORM OVERVIEW</p>
+        <h2>Good to see you, {{ current_user.full_name.split()[0] }}.</h2>
+        <p class="muted-copy">Here’s what’s happening across your mentorship community.</p>
+    </div>
+    <a class="button button-primary" href="{{ url_for('admin.create_user') }}">
+        <i class="bi bi-person-plus" aria-hidden="true"></i> Add a user
+    </a>
+</section>
+
+<section class="stat-grid stat-grid-four" aria-label="Platform statistics">
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-blue"><i class="bi bi-people" aria-hidden="true"></i></span>
+        <span class="stat-label">Total users</span>
+        <strong class="stat-value" data-count="{{ total_users }}">{{ total_users }}</strong>
+        <span class="stat-note">Across all roles</span>
+    </article>
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-teal"><i class="bi bi-person-workspace" aria-hidden="true"></i></span>
+        <span class="stat-label">Active mentors</span>
+        <strong class="stat-value" data-count="{{ mentors|length }}">{{ mentors|length }}</strong>
+        <span class="stat-note">Ready to support</span>
+    </article>
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-violet"><i class="bi bi-mortarboard" aria-hidden="true"></i></span>
+        <span class="stat-label">Active mentees</span>
+        <strong class="stat-value" data-count="{{ mentees|length }}">{{ mentees|length }}</strong>
+        <span class="stat-note">Growing every day</span>
+    </article>
+    <article class="stat-card">
+        <span class="stat-icon stat-icon-amber"><i class="bi bi-calendar-check" aria-hidden="true"></i></span>
+        <span class="stat-label">Sessions this month</span>
+        <strong class="stat-value" data-count="{{ sessions_this_month }}">{{ sessions_this_month }}</strong>
+        <span class="stat-note">{{ pending_approvals }} awaiting approval</span>
+    </article>
+</section>
+
+<section class="dashboard-grid dashboard-grid-wide">
+    <article class="surface-card chart-card">
+        <div class="card-heading">
+            <div>
+                <p class="eyebrow">COMMUNITY PULSE</p>
+                <h3>Growth & activity</h3>
+            </div>
+            <span class="soft-badge"><i class="bi bi-arrow-up-right" aria-hidden="true"></i> Last 6 months</span>
+        </div>
+        <div class="chart-wrap">
+            <canvas data-dashboard-chart
+                    data-labels="{{ growth_labels|tojson|forceescape }}"
+                    data-users="{{ user_growth|tojson|forceescape }}"
+                    data-meetings="{{ meeting_activity|tojson|forceescape }}"
+                    aria-label="Monthly user growth and meeting activity chart"></canvas>
+        </div>
+        <div class="chart-legend">
+            <span><i class="legend-dot legend-blue"></i> New users</span>
+            <span><i class="legend-dot legend-teal"></i> Sessions</span>
+        </div>
+    </article>
+
+    <article class="surface-card">
+        <div class="card-heading">
+            <div><p class="eyebrow">NEEDS ATTENTION</p><h3>Follow-ups</h3></div>
+            <span class="stat-icon stat-icon-amber"><i class="bi bi-inbox" aria-hidden="true"></i></span>
+        </div>
+        <a class="follow-up-row" href="{{ url_for('admin.stats') }}">
+            <span><i class="bi bi-calendar2-check" aria-hidden="true"></i></span>
+            <span><strong>Session requests</strong><small>Review meeting requests</small></span>
+            <b>{{ pending_approvals }}</b>
+        </a>
+        <a class="follow-up-row" href="{{ url_for('admin.concerns') }}">
+            <span><i class="bi bi-chat-square-text" aria-hidden="true"></i></span>
+            <span><strong>Open concerns</strong><small>Across the community</small></span>
+            <b>{{ pending_concerns }}</b>
+        </a>
+        <a class="follow-up-row" href="{{ url_for('admin.allocations') }}">
+            <span><i class="bi bi-diagram-3" aria-hidden="true"></i></span>
+            <span><strong>Mentor matching</strong><small>Manage current allocations</small></span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+        <div class="callout callout-soft">
+            <i class="bi bi-lightbulb" aria-hidden="true"></i>
+            <span>Clear follow-ups keep every mentoring relationship moving forward.</span>
+        </div>
+    </article>
+</section>
+
+<section class="surface-card activity-card">
+    <div class="card-heading">
+        <div><p class="eyebrow">RECENT ACTIVITY</p><h3>Audit trail</h3></div>
+        <a class="text-link" href="{{ url_for('admin.audit') }}">View full log <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    {% if recent_logs %}
+    <div class="activity-list">
+        {% for log in recent_logs %}
+        <article class="activity-row">
+            <span class="activity-icon"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+            <div><strong>{{ log.action|replace('_', ' ')|title }}</strong><p>{{ log.details }}</p></div>
+            <time datetime="{{ log.created_at.isoformat() }}">{{ log.created_at.strftime('%b %d, %H:%M') }}</time>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="empty-illustration"><i class="bi bi-activity" aria-hidden="true"></i></span>
+        <h4>It’s quiet here for now</h4>
+        <p>Important platform activity will show up here.</p>
+        <a class="button button-outline" href="{{ url_for('admin.users') }}">Explore users</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

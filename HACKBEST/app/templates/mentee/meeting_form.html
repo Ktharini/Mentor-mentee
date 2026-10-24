@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 700px;">
+    <div class="card-body">
+        <h3>Request a meeting</h3>
+        <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">{{ form.date.label(class_='form-label') }} {{ form.date(class_='form-control', min=min_meeting_date) }}
+                {% for error in form.date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <div class="mb-3">{{ form.time.label(class_='form-label') }} {{ form.time(class_='form-control') }}</div>
+            <div class="mb-3">{{ form.duration.label(class_='form-label') }} {{ form.duration(class_='form-control', min='15', max='240', step='15') }}
+                {% for error in form.duration.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+            </div>
+            <div class="mb-3">{{ form.mode.label(class_='form-label') }} {{ form.mode(class_='form-select') }}</div>
+            <div class="mb-3">{{ form.agenda.label(class_='form-label') }} {{ form.agenda(class_='form-control') }}</div>
+            {{ form.submit(class_='btn btn-primary') }}
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="chat-page" id="chat-app"
+         data-selected-kind="{{ selected_kind }}"
+         data-selected-recipient="{{ selected_recipient_id or '' }}"
+         data-selected-group="{{ selected_group_id or '' }}"
+         aria-label="Messages">
+    <header class="chat-page-heading">
+        <div>
+            <p class="eyebrow">YOUR INBOX</p>
+            <h2>Messages</h2>
+            <p class="muted-copy">Chat with your connections. Delivery and read receipts update automatically.</p>
+        </div>
+    </header>
+
+    <div class="chat-shell">
+        <aside class="chat-sidebar" aria-label="Conversations">
+            <div class="chat-sidebar-heading">
+                <h3>Chats</h3>
+                <span>{{ users|length + group_chats|length }}</span>
+            </div>
+            <div class="chat-contact-list" role="list">
+                {% if group_chats %}
+                <section class="chat-contact-section" aria-label="Group chats">
+                    <h4>Group chats</h4>
+                    {% for group in group_chats %}
+                    <a class="chat-contact{% if selected_kind == 'group' and group.id == selected_group_id %} is-active{% endif %}"
+                       href="{{ url_for('messaging.inbox', kind='group', group_id=group.id) }}"
+                       data-chat-group="{{ group.id }}"
+                       aria-label="{{ group.name }} (group chat)"
+                       aria-current="{{ 'page' if selected_kind == 'group' and group.id == selected_group_id else 'false' }}">
+                        <span class="avatar avatar-small group-avatar" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+                        <span class="chat-contact-copy">
+                            <strong>{{ group.name }}</strong>
+                            <small>{{ group.members|length }} members · Group</small>
+                        </span>
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </a>
+                    {% endfor %}
+                </section>
+                {% endif %}
+                {% if users %}
+                <section class="chat-contact-section" aria-label="Direct messages">
+                    <h4>Direct messages</h4>
+                {% for user in users %}
+                <a class="chat-contact{% if selected_kind == 'direct' and user.id == selected_recipient_id %} is-active{% endif %}"
+                   href="{{ url_for('messaging.inbox', kind='direct', recipient_id=user.id) }}"
+                   data-chat-contact="{{ user.id }}"
+                   aria-label="{{ user.full_name }} ({{ user.role }})"
+                   aria-current="{{ 'page' if selected_kind == 'direct' and user.id == selected_recipient_id else 'false' }}">
+                    <span class="avatar avatar-small" aria-hidden="true">{{ user.full_name[:1]|upper }}</span>
+                    <span class="chat-contact-copy">
+                        <strong>{{ user.full_name }}</strong>
+                        <small>{{ user.role|title }}</small>
+                    </span>
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </a>
+                {% endfor %}
+                </section>
+                {% endif %}
+                {% if not users and not group_chats %}
+                <div class="chat-empty-contacts">
+                    <span class="empty-illustration"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+                    <strong>No contacts yet</strong>
+                    <p>{% if current_user.role == 'mentee' %}There are no active mentors available to message right now.{% else %}There are no active users available to message right now.{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+
+        <section class="chat-conversation" aria-label="Selected conversation">
+            {% if selected_kind == 'group' and selected_group_id %}
+            <header class="chat-conversation-header">
+                <span class="avatar group-avatar" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+                <div>
+                    <h3 id="chat-recipient-name">Loading group…</h3>
+                    <span class="chat-presence" id="chat-group-members">Group chat · your mentor and assigned mentees</span>
+                </div>
+                <span class="chat-encryption"><i class="bi bi-chat-check" aria-hidden="true"></i> Group</span>
+            </header>
+            <div class="chat-message-list" id="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Group conversation messages">
+                <div class="chat-loading" role="status"><span class="chat-spinner" aria-hidden="true"></span>Loading messages…</div>
+            </div>
+            <div class="chat-error" id="chat-error" role="alert" hidden></div>
+            <form class="chat-composer" id="chat-form">
+                {{ form.hidden_tag() }}
+                <label class="visually-hidden" for="chat-content">Write a group message</label>
+                <textarea id="chat-content" name="content" rows="1" maxlength="500" placeholder="Message the group…" required></textarea>
+                <div class="chat-composer-footer">
+                    <small><span id="chat-char-count">0</span>/500</small>
+                    <button class="btn btn-primary" type="submit" id="chat-send"><i class="bi bi-send" aria-hidden="true"></i> Send</button>
+                </div>
+            </form>
+            {% elif selected_kind == 'direct' and selected_recipient_id %}
+            <header class="chat-conversation-header">
+                <span class="avatar" aria-hidden="true" id="chat-avatar"></span>
+                <div>
+                    <h3 id="chat-recipient-name">Loading conversation…</h3>
+                    <span class="chat-presence"><span aria-hidden="true"></span> Messages refresh automatically</span>
+                </div>
+                <span class="chat-encryption"><i class="bi bi-chat-check" aria-hidden="true"></i> Conversation</span>
+            </header>
+            <div class="chat-message-list" id="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation messages">
+                <div class="chat-loading" role="status"><span class="chat-spinner" aria-hidden="true"></span>Loading messages…</div>
+            </div>
+            <div class="chat-error" id="chat-error" role="alert" hidden></div>
+            <form class="chat-composer" id="chat-form">
+                {{ form.hidden_tag() }}
+                <label class="visually-hidden" for="chat-content">Write a message</label>
+                <textarea id="chat-content" name="content" rows="1" maxlength="500" placeholder="Write a message…" required></textarea>
+                <div class="chat-composer-footer">
+                    <label class="chat-emergency">{{ form.emergency() }} <span><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Mark as urgent</span></label>
+                    <small><span id="chat-char-count">0</span>/500</small>
+                    <button class="btn btn-primary" type="submit" id="chat-send"><i class="bi bi-send" aria-hidden="true"></i> Send</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="chat-no-selection">
+                <span class="empty-illustration"><i class="bi bi-chat-square-text" aria-hidden="true"></i></span>
+                <h3>Choose a chat</h3>
+                <p>Select a direct conversation or your mentor group to start messaging.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Allocation management</h2>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Mentee</th><th>Current mentor</th><th>Assign new mentor</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            {% for mentee in mentees %}
+            <tr>
+                <td>{{ mentee.full_name }}</td>
+                <td>{{ current_mentors.get(mentee.mentor_id, 'Unassigned') }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('admin.assign_mentor', mentee_id=mentee.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <select name="mentor_id" class="form-select">
+                            {% for mentor in mentors %}
+                            <option value="{{ mentor.id }}" {% if mentor.id == mentee.mentor_id %}selected{% endif %}>{{ mentor.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                </td>
+                <td>
+                        <button class="btn btn-primary btn-sm">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4"><div class="table-empty-state"><span><i class="bi bi-diagram-3" aria-hidden="true"></i></span><strong>No mentees to match</strong><p>Create a mentee account before assigning a mentor.</p><a class="button button-outline" href="{{ url_for('admin.create_user') }}">Add a mentee</a></div></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

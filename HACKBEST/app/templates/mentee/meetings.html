@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>My meetings</h2>
+    <a href="{{ url_for('mentee.create_meeting') }}" class="btn btn-primary">Request meeting</a>
+</div>
+<table class="table table-striped table-bordered">
+    <thead><tr><th>Mentor</th><th>Date</th><th>Status</th><th>Agenda</th></tr></thead>
+    <tbody>
+        {% for meeting in meetings %}
+        <tr><td>{{ meeting.mentor.full_name }}</td><td>{{ meeting.date }}</td><td>{{ meeting.status }}</td><td>{{ meeting.agenda }}</td></tr>
+        {% else %}
+        <tr><td colspan="4"><div class="table-empty-state"><span><i class="bi bi-calendar2-plus" aria-hidden="true"></i></span><strong>No sessions on your calendar</strong><p>Find a time to talk through your goals with your mentor.</p><a class="button button-outline" href="{{ url_for('mentee.create_meeting') }}">Book a session</a></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

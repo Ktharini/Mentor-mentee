@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Concern oversight</h2>
+<table class="table table-striped table-bordered">
+    <thead><tr><th>Mentee &amp; concern</th><th>Conversation</th><th>Update status / reply</th><th>Created</th></tr></thead>
+    <tbody>
+        {% for item in concerns %}
+        <tr>
+            <td>
+                <strong>{{ item.mentee.full_name }}</strong>
+                <p class="mb-1">{{ item.title }}</p>
+                <small>{{ item.priority|title }} priority · {{ item.category|title }}</small>
+                <p class="mt-2">{{ item.description }}</p>
+            </td>
+            <td>
+                <span class="status-pill">{{ item.status }}</span>
+                {% if item.comments %}<div class="mt-2" style="white-space: pre-line;">{{ item.comments }}</div>{% else %}<p class="muted-copy mt-2">No replies yet.</p>{% endif %}
+            </td>
+            <td>
+                <form method="post" action="{{ url_for('admin.update_concern', concern_id=item.id) }}" class="d-grid gap-2">
+                    {{ review_form.hidden_tag() }}
+                    <label>Status
+                        <select class="form-select" name="status">
+                            {% for status in ['Open', 'In Progress', 'Resolved'] %}
+                            <option value="{{ status }}" {% if item.status == status %}selected{% endif %}>{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Reply <textarea class="form-control" name="response" rows="3" maxlength="2000"></textarea></label>
+                    <button class="btn btn-primary btn-sm" type="submit">Save update</button>
+                </form>
+            </td>
+            <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5"><div class="table-empty-state"><span><i class="bi bi-chat-square-text" aria-hidden="true"></i></span><strong>No concerns to review</strong><p>Concerns raised by mentees will show here.</p></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="welcome-row">
+    <div>
+        <p class="eyebrow">CELEBRATING YOUR STUDENTS</p>
+        <h2>Students Achievements</h2>
+        <p class="muted-copy">Review each mentee’s achievements and download their proof.</p>
+    </div>
+</section>
+
+{% for mentee in mentees %}
+{% set student_achievements = achievements_by_mentee[mentee.id] %}
+<section class="surface-card">
+    <div class="card-heading">
+        <div>
+            <p class="eyebrow">MENTEE</p>
+            <h3>{{ mentee.full_name }}</h3>
+            <p class="muted-copy">{{ mentee.email or mentee.username }} · {{ student_achievements|length }} achievement{{ '' if student_achievements|length == 1 else 's' }}</p>
+        </div>
+        <a class="button button-outline" href="{{ url_for('mentor.mentee_achievements', mentee_id=mentee.id) }}">View this mentee</a>
+    </div>
+    {% if student_achievements %}
+    <div class="quick-list">
+        {% for achievement in student_achievements[:3] %}
+        <article class="quick-list-row">
+            <span class="activity-icon"><i class="bi bi-award" aria-hidden="true"></i></span>
+            <div>
+                <strong>{{ achievement.title }}</strong>
+                <p>Shared {{ achievement.created_at.strftime('%b %d, %Y at %I:%M %p') }}</p>
+            </div>
+            <a class="text-link" href="{{ url_for('mentor.student_achievement_proof', mentee_id=mentee.id, achievement_id=achievement.id) }}">Download proof</a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted-copy">No achievements shared yet.</p>
+    {% endif %}
+</section>
+{% else %}
+<section class="surface-card">
+    <div class="empty-state empty-state-compact">
+        <span class="empty-illustration"><i class="bi bi-people" aria-hidden="true"></i></span>
+        <h3>No active mentees yet</h3>
+        <p>Achievements shared by your active mentees will appear here.</p>
+    </div>
+</section>
+{% endfor %}
+{% endblock %}

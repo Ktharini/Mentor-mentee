@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="welcome-row">
+    <div>
+        <p class="eyebrow">CELEBRATE YOUR PROGRESS</p>
+        <h2>My achievements</h2>
+        <p class="muted-copy">Share a milestone with your mentor by adding its title and proof.</p>
+    </div>
+</section>
+
+<section class="surface-card">
+    <div class="card-heading">
+        <div><p class="eyebrow">ADD A MILESTONE</p><h3>Share an achievement</h3></div>
+        <span class="stat-icon stat-icon-violet"><i class="bi bi-trophy" aria-hidden="true"></i></span>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="form-grid">
+        {{ form.hidden_tag() }}
+        <label class="form-field">
+            <span>{{ form.title.label.text }}</span>
+            {{ form.title(class_='form-control', maxlength='120', placeholder='e.g. Completed my first project') }}
+            {% for error in form.title.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </label>
+        <label class="form-field">
+            <span for="proof">Proof (PDF, JPG, PNG, or WEBP; max 10 MB)</span>
+            <input class="form-control" type="file" id="proof" name="proof" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+        </label>
+        {{ form.submit(class_='btn btn-primary') }}
+    </form>
+</section>
+
+<section class="surface-card">
+    <div class="card-heading">
+        <div><p class="eyebrow">YOUR MILESTONES</p><h3>Shared achievements</h3></div>
+    </div>
+    {% if achievements %}
+    <div class="quick-list">
+        {% for achievement in achievements %}
+        <article class="quick-list-row">
+            <span class="activity-icon"><i class="bi bi-award" aria-hidden="true"></i></span>
+            <div>
+                <strong>{{ achievement.title }}</strong>
+                <p>Shared {{ achievement.created_at.strftime('%b %d, %Y at %I:%M %p') }}</p>
+            </div>
+            <a class="button button-outline" href="{{ url_for('mentee.achievement_proof', achievement_id=achievement.id) }}">
+                <i class="bi bi-paperclip" aria-hidden="true"></i> Download proof
+            </a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state empty-state-compact">
+        <span class="empty-illustration"><i class="bi bi-trophy" aria-hidden="true"></i></span>
+        <h4>Your achievements will appear here</h4>
+        <p>Share your first milestone to let your mentor know what you’ve accomplished.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

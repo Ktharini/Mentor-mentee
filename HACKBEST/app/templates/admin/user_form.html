@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+        <h3>Create user</h3>
+        <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">{{ form.username.label(class_='form-label') }} {{ form.username(class_='form-control') }}</div>
+            <div class="mb-3">{{ form.full_name.label(class_='form-label') }} {{ form.full_name(class_='form-control') }}</div>
+            <div class="mb-3">{{ form.email.label(class_='form-label') }} {{ form.email(class_='form-control') }}</div>
+            <div class="mb-3">{{ form.role.label(class_='form-label') }} {{ form.role(class_='form-select') }}</div>
+            <div class="mb-3">{{ form.password.label(class_='form-label') }} {{ form.password(class_='form-control') }}</div>
+            {{ form.submit(class_='btn btn-primary') }}
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary ms-2">Back</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="welcome-row">
+    <div><p class="eyebrow">ACCOUNT</p><h2>My profile</h2><p class="muted-copy">Your ProGuide account details and sign-in settings.</p></div>
+    <a class="button button-outline" href="{{ url_for('auth.change_password') }}"><i class="bi bi-key" aria-hidden="true"></i> Change password</a>
+</section>
+<section class="surface-card profile-card">
+    <div class="profile-identity">
+        <span class="avatar avatar-profile">{{ current_user.full_name.split()|map('first')|join|upper|truncate(2, True, '') }}</span>
+        <div><h3>{{ current_user.full_name }}</h3><span class="role-badge role-{{ current_user.role }}">{{ current_user.role|title }}</span></div>
+    </div>
+    <dl class="profile-details">
+        <div><dt>Username</dt><dd>{{ current_user.username }}</dd></div>
+        <div><dt>Email</dt><dd>{{ current_user.email or 'Not provided' }}</dd></div>
+        <div><dt>Account status</dt><dd><span class="status-pill status-approved">{{ 'Active' if current_user.is_active else 'Inactive' }}</span></dd></div>
+    </dl>
+</section>
+{% endblock %}

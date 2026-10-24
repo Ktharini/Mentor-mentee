@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if temporary_password %}
+<section class="alert alert-warning" role="alert" aria-live="assertive">
+    <strong>One-time temporary password</strong>
+    <p class="mb-2">Copy this password and deliver it securely. It will not be available after you leave this page.</p>
+    <label class="form-label" for="one-time-password">Temporary password</label>
+    <input class="form-control font-monospace" id="one-time-password" type="text" value="{{ temporary_password }}" readonly autocomplete="off">
+</section>
+{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>User management</h2>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('admin.import_students') }}" class="btn btn-outline-primary">
+            <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i> Import students
+        </a>
+        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">New user</a>
+    </div>
+</div>
+<table class="table table-striped table-bordered">
+    <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last login</th><th>Action</th></tr></thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.full_name }}<br><small>{{ user.username }}</small></td>
+            <td>{{ user.role }}</td>
+            <td>{% if user.is_active %}Active{% else %}Inactive{% endif %}</td>
+            <td>{{ user.last_login_at.strftime('%Y-%m-%d %H:%M') if user.last_login_at else 'Never' }}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin.toggle_user', user_id=user.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% set cannot_deactivate = user.is_active and (user.id == current_user.id or (user.role == 'admin' and active_admin_count <= 1)) %}
+                    <button class="btn btn-sm btn-outline-primary" {% if cannot_deactivate %}disabled title="{{ 'You cannot deactivate your own account.' if user.id == current_user.id else 'At least one active administrator must remain.' }}"{% endif %}>
+                        {{ 'Deactivate' if user.is_active else 'Activate' }}
+                    </button>
+                </form>
+                <form method="post" action="{{ url_for('admin.reset_password', user_id=user.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-warning">Reset password</button>
+                </form>
+                {% if user.id != current_user.id %}
+                <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display:inline;" data-confirm-delete="{{ user.full_name }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash3" aria-hidden="true"></i> Delete account
+                    </button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5"><div class="table-empty-state"><span><i class="bi bi-people" aria-hidden="true"></i></span><strong>No accounts yet</strong><p>Add a mentor or mentee to get started.</p><a class="button button-outline" href="{{ url_for('admin.create_user') }}">Add a user</a></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

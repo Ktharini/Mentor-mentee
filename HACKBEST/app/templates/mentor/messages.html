@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Messages</h2>
+<div class="card">
+    <div class="card-body">
+        {% for mentee in mentees %}
+        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <span>{{ mentee.full_name }}</span>
+            <a href="{{ url_for('messaging.inbox') }}" class="btn btn-sm btn-outline-primary">Open chat</a>
+        </div>
+        {% else %}
+        <div class="table-empty-state"><span><i class="bi bi-people" aria-hidden="true"></i></span><strong>No mentees to message yet</strong><p>Your conversations will be available once a mentee is assigned to you.</p></div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

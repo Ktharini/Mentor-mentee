@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Substitution assignments</h2>
+<form method="post" class="mb-4">
+    {{ form.hidden_tag() }}
+    <div class="row g-3">
+        <div class="col-md-3">{{ form.mentee_id.label }} {{ form.mentee_id(class_='form-select') }}
+            {% for error in form.mentee_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-3">{{ form.substitute_mentor_id.label }} {{ form.substitute_mentor_id(class_='form-select') }}
+            {% for error in form.substitute_mentor_id.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-3">{{ form.reason.label }} {{ form.reason(class_='form-control') }}
+            {% for error in form.reason.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-2">{{ form.start_date.label }} {{ form.start_date(class_='form-control', min=today) }}
+            {% for error in form.start_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="col-md-2">{{ form.end_date.label }} {{ form.end_date(class_='form-control', min=today) }}
+            {% for error in form.end_date.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+    </div>
+    <button class="btn btn-primary mt-3">Save</button>
+</form>
+<table class="table table-bordered">
+    <thead><tr><th>Mentee</th><th>Mentor</th><th>Substitute</th><th>Reason</th></tr></thead>
+    <tbody>
+        {% for item in substitutions %}
+        <tr><td>{{ item.mentee.full_name }}</td><td>{{ item.mentor.full_name }}</td><td>{{ item.substitute.full_name }}</td><td>{{ item.reason }}</td></tr>
+        {% else %}
+        <tr><td colspan="4"><div class="table-empty-state"><span><i class="bi bi-arrow-left-right" aria-hidden="true"></i></span><strong>No substitutions scheduled</strong><p>Temporary mentor coverage will appear here.</p></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

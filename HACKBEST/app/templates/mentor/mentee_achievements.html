@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="welcome-row">
+    <div>
+        <p class="eyebrow">STUDENT ACHIEVEMENTS</p>
+        <h2>{{ mentee.full_name }}</h2>
+        <p class="muted-copy">Achievements shared by this mentee.</p>
+    </div>
+    <a class="button button-outline" href="{{ url_for('mentor.student_achievements') }}">All students</a>
+</section>
+
+<section class="surface-card">
+    <div class="card-heading">
+        <div><p class="eyebrow">MILESTONES</p><h3>{{ achievements|length }} achievement{{ '' if achievements|length == 1 else 's' }}</h3></div>
+    </div>
+    {% if achievements %}
+    <div class="quick-list">
+        {% for achievement in achievements %}
+        <article class="quick-list-row">
+            <span class="activity-icon"><i class="bi bi-award" aria-hidden="true"></i></span>
+            <div>
+                <strong>{{ achievement.title }}</strong>
+                <p>Shared {{ achievement.created_at.strftime('%b %d, %Y at %I:%M %p') }}</p>
+            </div>
+            <a class="button button-outline" href="{{ url_for('mentor.student_achievement_proof', mentee_id=mentee.id, achievement_id=achievement.id) }}">
+                <i class="bi bi-paperclip" aria-hidden="true"></i> Download proof
+            </a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state empty-state-compact">
+        <span class="empty-illustration"><i class="bi bi-trophy" aria-hidden="true"></i></span>
+        <h3>No achievements yet</h3>
+        <p>{{ mentee.full_name }} has not shared any achievements yet.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>My mentees</h2>
+<table class="table table-striped table-bordered">
+    <thead><tr><th>Name</th><th>Email</th><th>Last activity</th></tr></thead>
+    <tbody>
+        {% for mentee in mentees %}
+        <tr><td>{{ mentee.full_name }}</td><td>{{ mentee.email or 'N/A' }}</td><td>{{ mentee.last_login_at.strftime('%Y-%m-%d %H:%M') if mentee.last_login_at else 'Never' }}</td></tr>
+        {% else %}
+        <tr><td colspan="3"><div class="table-empty-state"><span><i class="bi bi-people" aria-hidden="true"></i></span><strong>Your mentee list is ready to grow</strong><p>Once an admin matches a mentee with you, they’ll appear here.</p></div></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="auth-portal" aria-labelledby="login-title">
+    {% if not selected_role %}
+    <div class="auth-heading">
+        <span class="auth-kicker">WELCOME TO PROGUIDE</span>
+        <h2 id="login-title">Choose your workspace</h2>
+        <p>Sign in to continue to your mentoring community.</p>
+    </div>
+    <div class="role-card-grid" aria-label="Choose an account role">
+        {% for role, details in roles.items() %}
+        <a class="role-card" href="{{ url_for('auth.login', role=role) }}">
+            <span class="role-card-icon"><i class="bi {{ details[1] }}" aria-hidden="true"></i></span>
+            <span class="role-card-copy">
+                <strong>{{ role|title }}</strong>
+                <span>{{ details[0] }}</span>
+            </span>
+            <i class="bi bi-arrow-up-right role-card-arrow" aria-hidden="true"></i>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="auth-panel">
+        <a class="auth-back-link" href="{{ url_for('auth.login') }}">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Change role
+        </a>
+        <div class="auth-heading auth-heading-compact">
+            <span class="auth-kicker">{{ selected_role|upper }} WORKSPACE</span>
+            <h2 id="login-title">Login as {{ selected_role|title }}</h2>
+            <p>{{ roles[selected_role][0] }}</p>
+            <span class="role-selected-pill"><i class="bi {{ roles[selected_role][1] }}" aria-hidden="true"></i> {{ selected_role|title }} selected</span>
+        </div>
+        <form method="post" data-auth-form>
+            {{ form.hidden_tag() }}
+            <div class="auth-field">
+                {{ form.username.label(class_='form-label') }}
+                {{ form.username(class_='form-control', autocomplete='username', autofocus=true, maxlength=50, **{'aria-describedby': 'username-errors'}) }}
+                {% if form.username.errors %}<div class="field-errors" id="username-errors" role="alert">{% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+            </div>
+            <div class="auth-field">
+                {{ form.password.label(class_='form-label') }}
+                <div class="password-input-wrap">
+                    {{ form.password(class_='form-control', autocomplete='current-password', id='login-password', **{'aria-describedby': 'password-errors'}) }}
+                    <button class="password-toggle" type="button" data-toggle-password="login-password" aria-label="Show password" aria-pressed="false">
+                        <i class="bi bi-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                {% if form.password.errors %}<div class="field-errors" id="password-errors" role="alert">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+            </div>
+            <div class="auth-options">
+                <label class="remember-control">{{ form.remember_me() }} <span>Remember me</span></label>
+                <a href="{{ url_for('auth.forgot_password', role=selected_role) }}">Forgot password?</a>
+            </div>
+            <button class="button button-primary auth-submit" type="submit" data-loading-label="Signing in…">
+                <span>Login</span><i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

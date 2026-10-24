@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#f8fafc">
+    <title>{{ page_title }} · ProGuide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body{% if current_user.is_authenticated %} data-onboarding-user="{{ current_user.id }}" data-onboarding-dashboard="{{ 'true' if request.endpoint in ['admin.dashboard', 'mentor.dashboard', 'mentee.dashboard'] else 'false' }}"{% endif %}>
+<header class="app-header">
+    <div class="header-start">
+        {% if current_user.is_authenticated %}
+        <button class="icon-button menu-trigger" id="menu-trigger" type="button"
+                aria-label="Open navigation menu" aria-controls="side-drawer" aria-expanded="false">
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        {% endif %}
+        <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">P</span><span>ProGuide</span></a>
+        {% if current_user.is_authenticated %}
+        <span class="header-divider" aria-hidden="true"></span>
+        <h1 class="page-heading">{{ page_title }}</h1>
+        {% endif %}
+    </div>
+
+    <div class="header-actions">
+        {% if current_user.is_authenticated %}
+        <button class="search-trigger" type="button" data-open-search aria-label="Search pages and people">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <span>Search</span>
+            <kbd>Ctrl K</kbd>
+        </button>
+        <div class="notification-wrap">
+            <button class="icon-button notification-trigger" id="notification-trigger" type="button"
+                    aria-label="Notifications" aria-controls="notification-panel" aria-expanded="false">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                <span class="notification-count{% if not unread_count %} is-hidden{% endif %}" data-unread-count>{{ unread_count }}</span>
+            </button>
+            <section class="notification-panel" id="notification-panel" aria-label="Notifications" hidden>
+                <div class="panel-heading">
+                    <div><strong>Notifications</strong><span class="panel-subtitle">Your latest updates</span></div>
+                    <button class="text-button" type="button" data-refresh-notifications>Refresh</button>
+                </div>
+                <div class="notification-list" data-notification-list aria-live="polite">
+                    <p class="empty-copy">Loading your notifications…</p>
+                </div>
+            </section>
+        </div>
+        <a class="avatar avatar-header" href="{{ url_for('auth.profile') }}"
+           aria-label="View profile for {{ current_user.full_name }}">
+            {{ current_user.full_name.split()|map('first')|join|upper|truncate(2, True, '') }}
+        </a>
+        {% endif %}
+    </div>
+</header>
+
+{% if current_user.is_authenticated %}
+<div class="drawer-scrim" id="drawer-scrim" hidden></div>
+<aside class="side-drawer" id="side-drawer" role="dialog" aria-modal="true" aria-label="Main navigation" aria-hidden="true" tabindex="-1">
+    <div class="drawer-topline">
+        <span class="drawer-label">YOUR WORKSPACE</span>
+        <button class="icon-button drawer-close" type="button" data-close-drawer aria-label="Close navigation menu">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div class="drawer-user">
+        <span class="avatar avatar-large" aria-hidden="true">
+            {{ current_user.full_name.split()|map('first')|join|upper|truncate(2, True, '') }}
+        </span>
+        <span class="drawer-user-copy">
+            <strong>{{ current_user.full_name }}</strong>
+            <span class="role-badge role-{{ current_user.role }}">{{ current_user.role|title }}</span>
+        </span>
+    </div>
+
+    <nav class="drawer-navigation">
+        {% for section in menu_sections %}
+        <section class="menu-section" aria-label="{{ section['title'] }}">
+            <h2>{{ section['title'] }}</h2>
+            {% for item in section['items'] %}
+            <a class="menu-link{% if request.endpoint == item.endpoint %} is-active{% endif %}"
+               href="{{ url_for(item.endpoint) }}" data-command-item>
+                <i class="bi {{ item.icon }}" aria-hidden="true"></i>
+                <span>{{ item.label }}</span>
+                {% if item.endpoint == 'mentor.meetings' and current_user.role == 'mentor' and pending_meeting_count %}
+                <span class="menu-count">{{ pending_meeting_count }}</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </section>
+        {% endfor %}
+    </nav>
+
+    <div class="drawer-footer">
+        <a class="menu-link{% if request.endpoint == 'auth.profile' %} is-active{% endif %}"
+           href="{{ url_for('auth.profile') }}">
+            <i class="bi bi-person" aria-hidden="true"></i><span>Profile</span>
+        </a>
+        <button class="menu-link theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+            <i class="bi bi-moon-stars" aria-hidden="true"></i><span>Dark appearance</span>
+            <span class="toggle-indicator" aria-hidden="true"></span>
+        </button>
+        <a class="menu-link menu-link-danger" href="{{ url_for('auth.logout') }}">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Log out</span>
+        </a>
+    </div>
+</aside>
+{% endif %}
+
+<main class="app-main" id="main-content" tabindex="-1">
+    <div class="page-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-stack" aria-live="polite" aria-atomic="true">
+            {% for category, message in messages %}
+            <div class="toast-message toast-{{ category }}" role="status">
+                <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %}" aria-hidden="true"></i>
+                <span>{{ message }}</span>
+                <button class="toast-dismiss" type="button" aria-label="Dismiss notification">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+{% if current_user.is_authenticated %}
+<dialog class="onboarding-dialog" id="onboarding-dialog" aria-labelledby="onboarding-title">
+    <button class="onboarding-skip" type="button" data-tour-skip>Skip tour</button>
+    <p class="eyebrow">A QUICK PROGUIDE TOUR</p>
+    <div class="tour-progress" aria-hidden="true"><span data-tour-progress></span></div>
+    <div class="tour-step" data-tour-step="0">
+        <span class="empty-illustration"><i class="bi bi-compass" aria-hidden="true"></i></span>
+        <h2 id="onboarding-title">Your workspace, your way</h2>
+        <p>Open the menu to find the tools and pages available for your role.</p>
+    </div>
+    <div class="tour-step" data-tour-step="1" hidden>
+        <span class="empty-illustration"><i class="bi bi-command" aria-hidden="true"></i></span>
+        <h2>Find things in a flash</h2>
+        <p>Press Ctrl+K to jump to a page or search for a person you can access.</p>
+    </div>
+    <div class="tour-step" data-tour-step="2" hidden>
+        <span class="empty-illustration"><i class="bi bi-bell" aria-hidden="true"></i></span>
+        <h2>Stay in the loop</h2>
+        <p>Check your notification bell for updates, and return to this dashboard for your next steps.</p>
+    </div>
+    <div class="tour-actions">
+        <button class="button button-outline" type="button" data-tour-skip>Not now</button>
+        <button class="button button-primary" type="button" data-tour-next>Next</button>
+    </div>
+</dialog>
+<dialog class="command-dialog" id="command-dialog" aria-labelledby="command-title">
+    <div class="command-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <label class="visually-hidden" id="command-title" for="command-input">Search pages and people</label>
+        <input id="command-input" type="search" autocomplete="off" placeholder="Search pages or people…">
+        <kbd>ESC</kbd>
+    </div>
+    <div class="command-results" id="command-results" role="listbox" aria-label="Search results">
+        {% for section in menu_sections %}
+            {% for item in section['items'] %}
+            <a class="command-result" href="{{ url_for(item.endpoint) }}" data-command-item role="option">
+                <i class="bi {{ item.icon }}" aria-hidden="true"></i><span>{{ item.label }}</span>
+                <small>Page</small>
+            </a>
+            {% endfor %}
+        {% endfor %}
+        <p class="command-hint">Type a name to search people you can access.</p>
+    </div>
+</dialog>
+{% endif %}
+</body>
+</html>
